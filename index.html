@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro y Emisión de Cédula de Datos Personales</title>
+    <style>
+        :root {
+            --primary-color: #1e3a8a;
+            --primary-hover: #1e40af;
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #cbd5e1;
+            --accent-color: #b91c1c;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 750px;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        h2, h3 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-top: 0;
+        }
+
+        fieldset {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            background-color: #fafafa;
+        }
+
+        legend {
+            font-weight: bold;
+            color: var(--primary-color);
+            background: #fff;
+            padding: 5px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="tel"],
+        select,
+        textarea,
+        input[type="file"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.15);
+        }
+
+        textarea {
+            resize: vertical;
+            height: 70px;
+        }
+
+        .conditional-field {
+            display: none;
+            background-color: #fff1f2;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid var(--accent-color);
+            margin-top: 10px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Estilos para la vista de Acta / Certificado (Oculto al inicio) */
+        #acta-preview {
+            display: none;
+            background: white;
+            padding: 40px;
+            border: 3px double var(--primary-color);
+            border-radius: 8px;
+        }
+
+        .header-logo-preview {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header-logo-preview img {
+            max-height: 100px;
+            max-width: 100%;
+            object-fit: contain;
+        }
+
+        .acta-title {
+            text-align: center;
+            text-transform: uppercase;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+        }
+
+        .acta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .acta-grid.full {
+            grid-template-columns: 1fr;
+        }
+
+        .acta-item span {
+            font-weight: bold;
+            color: #475569;
+        }
+
+        .btn-imprimir {
+            background-color: #059669;
+            margin-top: 20px;
+        }
+        .btn-imprimir:hover {
+            background-color: #047857;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            form, .no-print {
+                display: none !important;
+            }
+            #acta-preview {
+                display: block !important;
+                border: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- FORMULARIO DE REGISTRO -->
+        <form id="registroForm" onsubmit="generarActa(event)">
+            <h2>Registro de Datos Personales</h2>
+            
+            <!-- Foto de Encabezado -->
+            <fieldset>
+                <legend>Encabezado del Documento</legend>
+                <div class="form-group">
+                    <label for="foto_encabezado">Foto o Logo para el Encabezado:</label>
+                    <input type="file" id="foto_encabezado" name="foto_encabezado" accept="image/*" required>
+                </div>
+            </fieldset>
+
+            <!-- Datos Personales -->
+            <fieldset>
+                <legend>Datos Personales</legend>
+                <div class="form-group">
+                    <label for="nombres">Nombre(s):</label>
+                    <input type="text" id="nombres" required placeholder="Ej. Juan Carlos">
+                </div>
+                <div class="form-group">
+                    <label for="apellido_paterno">Apellido Paterno:</label>
+                    <input type="text" id="apellido_paterno" required placeholder="Ej. Pérez">
+                </div>
+                <div class="form-group">
+                    <label for="apellido_materno">Apellido Materno:</label>
+                    <input type="text" id="apellido_materno" required placeholder="Ej. Gómez">
+                </div>
+                <div class="form-group">
+                    <label for="fecha_nacimiento">Fecha de Nacimiento:</label>
+                    <input type="date" id="fecha_nacimiento" required onchange="verificarEdad()">
+                </div>
+                <div class="form-group">
+                    <label for="curp">CURP:</label>
+                    <input type="text" id="curp" maxlength="18" style="text-transform: uppercase;" required placeholder="Ej. ABCD123456HDFR01">
+                </div>
+                
+                <!-- Campo condicional para menores de edad -->
+                <div id="seccion_credencial" class="conditional-field">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="foto_credencial">Foto de Credencial o Identificación del Tutor (Menor de edad):</label>
+                        <input type="file" id="foto_credencial" accept="image/*">
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- Información Médica y Domicilio -->
+            <fieldset>
+                <legend>Información Médica y Domicilio</legend>
+                <div class="form-group">
+                    <label for="tipo_sangre">Tipo de Sangre:</label>
+                    <select id="tipo_sangre" required>
+                        <option value="">Seleccione una opción</option>
+                        <option value="O Positivo (O+)">O Positivo (O+)</option>
+                        <option value="O Negativo (O-)">O Negativo (O-)</option>
+                        <option value="A Positivo (A+)">A Positivo (A+)</option>
+                        <option value="A Negativo (A-)">A Negativo (A-)</option>
+                        <option value="B Positivo (B+)">B Positivo (B+)</option>
+                        <option value="B Negativo (B-)">B Negativo (B-)</option>
+                        <option value="AB Positivo (AB+)">AB Positivo (AB+)</option>
+                        <option value="AB Negativo (AB-)">AB Negativo (AB-)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="enfermedades">Tipos de Enfermedades o Padecimientos:</label>
+                    <textarea id="enfermedades" placeholder="Especifique padecimientos crónicos o alergias (o escriba 'Ninguna')"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="direccion">Dirección (Calle, Núm., Colonia):</label>
+                    <input type="text" id="direccion" required placeholder="Ej. Av. Juárez #123, Col. Centro">
+                </div>
+                <div class="form-group">
+                    <label for="codigo_postal">Código Postal:</label>
+                    <input type="text" id="codigo_postal" maxlength="5" pattern="[0-9]{5}" required placeholder="Ej. 06000">
+                </div>
+            </fieldset>
+
+            <!-- Familiares / Contactos de Emergencia -->
+            <fieldset>
+                <legend>Familiares / Contactos de Emergencia</legend>
+                <div class="form-group">
+                    <label for="familiar_1">Nombre del Familiar 1 (Contacto Principal):</label>
+                    <input type="text" id="familiar_1" required placeholder="Nombre completo">
+                </div>
+                <div class="form-group">
+                    <label for="tel_familiar_1">Teléfono del Familiar 1:</label>
+                    <input type="tel" id="tel_familiar_1" required placeholder="Ej. 5512345678">
+                </div>
+                <div class="form-group">
+                    <label for="familiar_2">Nombre del Familiar 2 (Opcional):</label>
+                    <input type="text" id="familiar_2" placeholder="Nombre completo">
+                </div>
+                <div class="form-group">
+                    <label for="tel_familiar_2">Teléfono del Familiar 2 (Opcional):</label>
+                    <input type="tel" id="tel_familiar_2" placeholder="Ej. 5587654321">
+                </div>
+            </fieldset>
+
+            <button type="submit">Generar Acta de Datos Personales</button>
+        </form>
+
+        <!-- VISTA PREVIA TIPO ACTA (Generada dinámicamente) -->
+        <div id="acta-preview">
+            <div class="header-logo-preview">
+                <img id="imgEncabezadoPreview" src="" alt="Encabezado">
+            </div>
+            <div class="acta-title">Constancia de Registro de Datos Personales</div>
+
+            <div class="acta-grid">
+                <div class="acta-item"><span>Nombre(s):</span> <span id="lblNombres"></span></div>
+                <div class="acta-item"><span>Apellidos:</span> <span id="lblApellidos"></span></div>
+            </div>
+
+            <div class="acta-grid">
+                <div class="acta-item"><span>Fecha de Nacimiento:</span> <span id="lblNacimiento"></span></div>
+                <div class="acta-item"><span>CURP:</span> <span id="lblCurp"></span></div>
+            </div>
+
+            <div class="acta-grid">
+                <div class="acta-item"><span>Tipo de Sangre:</span> <span id="lblSangre"></span></div>
+                <div class="acta-item"><span>Código Postal:</span> <span id="lblCp"></span></div>
+            </div>
+
+            <div class="acta-grid full">
+                <div class="acta-item"><span>Dirección:</span> <span id="lblDireccion"></span></div>
+            </div>
+
+            <div class="acta-grid full">
+                <div class="acta-item"><span>Padecimientos / Enfermedades:</span> <span id="lblEnfermedades"></span></div>
+            </div>
+
+            <h3 style="text-align: left; font-size: 1.1rem; margin-top: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px;">Contactos de Emergencia</h3>
+            <div class="acta-grid">
+                <div class="acta-item"><span>Familiar 1:</span> <span id="lblFam1"></span></div>
+                <div class="acta-item"><span>Teléfono 1:</span> <span id="lblTel1"></span></div>
+            </div>
+            <div class="acta-grid" id="seccionFam2Preview" style="display: none;">
+                <div class="acta-item"><span>Familiar 2:</span> <span id="lblFam2"></span></div>
+                <div class="acta-item"><span>Teléfono 2:</span> <span id="lblTel2"></span></div>
+            </div>
+
+            <button type="button" class="btn-imprimir no-print" onclick="window.print()">Descargar / Imprimir en PDF</button>
+            <button type="button" style="background-color: #64748b; margin-top: 10px;" class="no-print" onclick="regresarFormulario()">Modificar Datos</button>
+        </div>
+
+    </div>
+
+    <script>
+        function verificarEdad() {
+            const fechaNac = document.getElementById('fecha_nacimiento').value;
+            const seccionCredencial = document.getElementById('seccion_credencial');
+            const inputCredencial = document.getElementById('foto_credencial');
+
+            if (!fechaNac) return;
+
+            const hoy = new Date();
+            const nacimiento = new Date(fechaNac);
+            let edad = hoy.getFullYear() - nacimiento.getFullYear();
+            const m = hoy.getMonth() - nacimiento.getMonth();
+            if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) {
+                edad--;
+            }
+
+            if (edad < 18) {
+                seccionCredencial.style.display = 'block';
+                inputCredencial.required = true;
+            } else {
+                seccionCredencial.style.display = 'none';
+                inputCredencial.required = false;
+                inputCredencial.value = '';
+            }
+        }
+
+        function generarActa(event) {
+            event.preventDefault();
+
+            // Leer datos del formulario e insertarlos en el acta
+            document.getElementById('lblNombres').innerText = document.getElementById('nombres').value;
+            document.getElementById('lblApellidos').innerText = document.getElementById('apellido_paterno').value + ' ' + document.getElementById('apellido_materno').value;
+            document.getElementById('lblNacimiento').innerText = document.getElementById('fecha_nacimiento').value;
+            document.getElementById('lblCurp').innerText = document.getElementById('curp').value.toUpperCase();
+            document.getElementById('lblSangre').innerText = document.getElementById('tipo_sangre').value;
+            document.getElementById('lblEnfermedades').innerText = document.getElementById('enfermedades').value || 'Ninguna especificada';
+            document.getElementById('lblDireccion').innerText = document.getElementById('direccion').value;
+            document.getElementById('lblCp').innerText = document.getElementById('codigo_postal').value;
+
+            document.getElementById('lblFam1').innerText = document.getElementById('familiar_1').value;
+            document.getElementById('lblTel1').innerText = document.getElementById('tel_familiar_1').value;
+
+            const fam2 = document.getElementById('familiar_2').value;
+            const tel2 = document.getElementById('tel_familiar_2').value;
+            if (fam2) {
+                document.getElementById('lblFam2').innerText = fam2;
+                document.getElementById('lblTel2').innerText = tel2;
+                document.getElementById('seccionFam2Preview').style.display = 'grid';
+            } else {
+                document.getElementById('seccionFam2Preview').style.display = 'none';
+            }
+
+            // Manejar la imagen de encabezado
+            const fileInput = document.getElementById('foto_encabezado');
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imgEncabezadoPreview').src = e.target.result;
+                }
+                reader.readAsDataURL(fileInput.files[0]);
+            }
+
+            // Ocultar formulario y mostrar vista de acta
+            document.getElementById('registroForm').style.display = 'none';
+            document.getElementById('acta-preview').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function regresarFormulario() {
+            document.getElementById('acta-preview').style.display = 'none';
+            document.getElementById('registroForm').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
